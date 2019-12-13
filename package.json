@@ -1,0 +1,31 @@
+{
+  "name": "hocus-proxus-occ",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "async-exit-hook": "^2.0.1",
+    "cheerio": "^1.0.0-rc.3",
+    "chokidar": "^3.3.0",
+    "colorette": "^1.1.0",
+    "fs-extra": "^8.1.0",
+    "globby": "^10.0.1",
+    "less": "^3.10.3",
+    "occ-custom-bootstrap-less": "github:douglashipolito/occ-custom-bootstrap-less",
+    "rollup": "^1.17.0",
+    "rollup-plugin-amd": "^4.0.0",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-multi-input": "^1.0.2",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-progress": "^1.1.1"
+  },
+  "devDependencies": {}
+}
