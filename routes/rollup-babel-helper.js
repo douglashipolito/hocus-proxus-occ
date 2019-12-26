@@ -4,7 +4,7 @@ const Files = require("../helpers/Files");
 
 exports.beforeSendRequest = {
   async shouldResolve({ requestDetail }) {
-    return /index-/.test(requestDetail.url);
+    return /index-|\.\.\/viewModel-/.test(requestDetail.url);
   },
   async resolve({ requestDetail }) {
     let filesHelper, babelJSFile;

@@ -7,6 +7,7 @@ const babel = require("rollup-plugin-babel");
 const less = require("less");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const multiInput = require("rollup-plugin-multi-input").default;
+const html = require("rollup-plugin-html");
 const progress = require("rollup-plugin-progress");
 const amd = require("rollup-plugin-amd");
 const exitHook = require("async-exit-hook");
@@ -341,7 +342,9 @@ class Transpiler {
         },
         plugins: [
           progress(),
-
+          html({
+            include: [path.join(this.config.storefrontPath, '**', '*.html')]
+          }),
           multiInput(),
           occResolverPlugin(),
           amd(),

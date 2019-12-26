@@ -6,9 +6,9 @@ define([#dependenciesImports], function(#allDependencies) {
       var currentContext = this;
       var currentArguments = Array.from(arguments);
 
-      allDependencies.forEach(function (currentDependency) {
-        if(currentDependency && currentDependency.onLoad) {
-          currentDependency.onLoad.apply(currentContext, currentArguments);
+      Object.keys(app).filter(appLevelName => appLevelName !== 'onLoad').forEach(appLevelName => {
+        if(app[appLevelName].onLoad) {
+          app[appLevelName].onLoad.apply(currentContext, currentArguments);
         }
       });
     }
