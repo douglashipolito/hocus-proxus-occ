@@ -1,12 +1,12 @@
-exports.preprocessors = [
-  require("./preprocessors/commands"),
-  require("./preprocessors/transpiler")
-];
+#!/usr/bin/env node
 
-exports.routes = [
-  require("./routes/main-html"),
-  require("./routes/rollup-babel-helper"),
-  require("./routes/page"),
-  require("./routes/javascript"),
-  require("./routes/css")
-];
+const path = require('path');
+const os = require('os');
+const HocusProxus = require('hocus-proxus');
+const proxy = new HocusProxus({
+  hocusProxusUserPath: path.join(os.homedir(), "hocus-proxus-occ"),
+  rulesPath: path.join(__dirname, 'rules'),
+  enabledRule: 'oe-rules'
+});
+
+proxy.start();

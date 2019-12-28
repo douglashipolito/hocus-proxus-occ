@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "hocus-proxus-occ": "./index.js"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index"
   },
   "author": "",
   "license": "ISC",
@@ -18,6 +22,7 @@
     "colorette": "^1.1.0",
     "fs-extra": "^8.1.0",
     "globby": "^10.0.1",
+    "hocus-proxus": "github:douglashipolito/hocus-proxus",
     "inquirer": "^7.0.1",
     "inquirer-autocomplete-prompt": "^1.0.1",
     "inquirer-select-directory": "^1.2.0",

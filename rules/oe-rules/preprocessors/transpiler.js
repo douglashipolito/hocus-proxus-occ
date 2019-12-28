@@ -100,6 +100,8 @@ class Transpiler {
       const bootstrapPath = path.join(
         __dirname,
         "..",
+        "..",
+        "..",
         "node_modules",
         "occ-custom-bootstrap-less",
         "less",
@@ -358,7 +360,9 @@ class Transpiler {
               [
                 path.join(
                   __dirname,
-                  '..',
+                  "..",
+                  "..",
+                  "..",
                   "node_modules",
                   "@babel/plugin-proposal-decorators"
                 ),
@@ -366,7 +370,9 @@ class Transpiler {
               ],
               path.join(
                 __dirname,
-                '..',
+                "..",
+                "..",
+                "..",
                 "node_modules",
                 "@babel/plugin-proposal-class-properties"
               )

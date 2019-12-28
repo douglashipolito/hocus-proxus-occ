@@ -87,7 +87,7 @@ function createConfig(config, server) {
       // Update server rule
       await server.updateRuleConfig({
         domain: newConfig.environment.hostname,
-        enabledRule: 'occ'
+        enabledRule: 'oe-rules'
       });
 
       resolve(newConfig);
