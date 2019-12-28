@@ -6,12 +6,12 @@ exports.beforeSendResponse = {
   async shouldResolve({ requestDetail }) {
     return /\/css\/(base|common)\.css/.test(requestDetail.url);
   },
-  async resolve({ requestDetail, responseDetail }) {
+  async resolve({ requestDetail, responseDetail, serverOptions }) {
     let fileContent = null, files, filePath;
     const requestedCssFile = path.basename(requestDetail.url).replace(/(.*\.css)\?.*/, '$1');
-    
+
     try {
-      files = await new Files();
+      files = await new Files(serverOptions);
       const cssBasePath = path.join(files.config.transpiledFolder, 'less');
       filePath = path.join(cssBasePath, requestedCssFile);
       fileContent = await fs.readFile(filePath, 'utf8');

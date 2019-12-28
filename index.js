@@ -1,4 +1,7 @@
-exports.preprocessors = [require("./preprocessors/transpiler")];
+exports.preprocessors = [
+  require("./preprocessors/commands"),
+  require("./preprocessors/transpiler")
+];
 
 exports.routes = [
   require("./routes/main-html"),

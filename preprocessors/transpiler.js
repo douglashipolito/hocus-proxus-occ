@@ -11,6 +11,7 @@ const html = require("rollup-plugin-html");
 const progress = require("rollup-plugin-progress");
 const amd = require("rollup-plugin-amd");
 const exitHook = require("async-exit-hook");
+const Config = require('../config');
 
 /**
  * Create the index file containing the app level
@@ -52,8 +53,9 @@ function createJsBundleIndexFile(filesList, appLevelIndexTemplate) {
 }
 
 class Transpiler {
-  constructor() {
+  constructor(serverOptions) {
     this.config = {};
+    this.serverOptions = serverOptions;
     exitHook(async callback => {
       console.log("Transpiler - Clearing temp files...");
       try {
@@ -70,7 +72,8 @@ class Transpiler {
   setConfigs() {
     return new Promise(async (resolve, reject) => {
       try {
-        this.config = await require("../config")();
+        const config = new Config(this.serverOptions);
+        this.config = await config.getConfig();
 
         //It will replace the main widget index.js file
         // Temporary solution
@@ -105,7 +108,7 @@ class Transpiler {
 
       try {
         await fs.ensureDir(lessPath);
-        files = await new Files();
+        files = await new Files(this.serverOptions);
         widgetsLessFiles = await files.findFiles(["widgets"], ["less"]);
         themeLessFiles = await files.findFiles(["less"], ["less"]);
       } catch (error) {
@@ -190,7 +193,7 @@ class Transpiler {
       const widgetJsIndexContent = this.widgetJsIndexContent;
 
       try {
-        files = await new Files();
+        files = await new Files(this.serverOptions);
         widgetsJsFiles = await files.findFiles(["widgets"], ["js"]);
         appLevelFiles = await files.findFiles(["app-level"], ["js"]);
         appLevelIndexTemplate = await fs.readFile(
@@ -208,10 +211,10 @@ class Transpiler {
         .map(file => {
           let outputFile = "";
           const type = path
-            .relative(this.config.storefrontPath, file)
+            .relative(this.config.storefront, file)
             .split(path.sep)[0];
           const widgetSegments = path
-            .relative(this.config.storefrontPath, file)
+            .relative(this.config.storefront, file)
             .split(path.sep);
           const widgetName = widgetSegments[2];
 
@@ -249,11 +252,11 @@ class Transpiler {
 
       extraAppLevelJSs.forEach(file => {
         const basePath = path
-          .relative(this.config.storefrontPath, file)
+          .relative(this.config.storefront, file)
           .split(path.sep)[0];
 
         const appLevelName = path
-          .relative(this.config.storefrontPath, file)
+          .relative(this.config.storefront, file)
           .split(path.sep)[1];
 
         entries.push({
@@ -279,7 +282,7 @@ class Transpiler {
             if (source.startsWith("occ-components")) {
               return {
                 id: path.join(
-                  this.config.storefrontPath,
+                  this.config.storefront,
                   ".occ-components",
                   "widgets",
                   source.replace("occ-components", ""),
@@ -343,7 +346,7 @@ class Transpiler {
         plugins: [
           progress(),
           html({
-            include: [path.join(this.config.storefrontPath, '**', '*.html')]
+            include: [path.join(this.config.storefront, '**', '*.html')]
           }),
           multiInput(),
           occResolverPlugin(),
@@ -410,8 +413,8 @@ exports.preprocessors = {
   async shouldResolve() {
     return true;
   },
-  async resolve() {
-    const transpiler =  new Transpiler();
+  async resolve({ serverOptions }) {
+    const transpiler =  new Transpiler(serverOptions);
 
     try {
       await transpiler.setConfigs();

@@ -1,19 +1,19 @@
 const globby = require("globby");
 const path = require("path");
 const cache = [];
+const Config = require('../config');
 
 class Files {
-  constructor() {
+  constructor(serverOptions) {
     return new Promise(async (resolve, reject) => {
-      let config;
       try {
-        config = await require("../config")();
+        const config = new Config(serverOptions);
+        this.config = await config.getConfig();
       } catch (error) {
         reject(error);
         throw new Error("Error on loading configs");
       }
 
-      this.config = config;
       resolve(this);
     });
   }
@@ -33,7 +33,7 @@ class Files {
       let foundFiles;
 
       paths = paths.map(currentPath =>
-        path.join(basePath || this.config.storefrontPath, currentPath)
+        path.join(basePath || this.config.storefront, currentPath)
       );
 
       const foundCache = cache.find(

@@ -6,15 +6,15 @@ exports.beforeSendRequest = {
   async shouldResolve({ requestDetail }) {
     return /index-|\.\.\/viewModel-/.test(requestDetail.url);
   },
-  async resolve({ requestDetail }) {
-    let filesHelper, babelJSFile;
+  async resolve({ requestDetail, serverOptions }) {
+    let files, babelJSFile;
 
     try {
-      filesHelper = await new Files();
-      babelJSFile = await filesHelper.findFiles(
+      files = await new Files(serverOptions);
+      babelJSFile = await files.findFiles(
         ["index-*"],
         ["js"],
-        filesHelper.config.transpiledFolder
+        files.config.transpiledFolder
       );
     } catch (error) {
       console.log(error);

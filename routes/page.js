@@ -2,7 +2,7 @@ const path = require("path");
 const fs = require("fs-extra");
 const Files = require("../helpers/Files");
 
-async function replaceTemplate(bodyResponse, templateFiles, filesHelper) {
+async function replaceTemplate(bodyResponse, templateFiles, files) {
   const regions = bodyResponse.regions;
   let foundWidgetsPath = [];
   let widgetsTemplatesContent = {};
@@ -17,7 +17,7 @@ async function replaceTemplate(bodyResponse, templateFiles, filesHelper) {
   templateFiles.forEach(widgetTemplateFile => {
     const widgetName = path
       .relative(
-        path.join(filesHelper.config.storefrontPath, "widgets"),
+        path.join(files.config.storefront, "widgets"),
         widgetTemplateFile
       )
       .split(path.sep)[1];
@@ -33,7 +33,7 @@ async function replaceTemplate(bodyResponse, templateFiles, filesHelper) {
   for await (let foundWidgetPath of foundWidgetsPath) {
     const widgetName = path
       .relative(
-        path.join(filesHelper.config.storefrontPath, "widgets"),
+        path.join(files.config.storefront, "widgets"),
         foundWidgetPath
       )
       .split(path.sep)[1];
@@ -68,7 +68,7 @@ async function replaceTemplate(bodyResponse, templateFiles, filesHelper) {
         widgetsTemplatesContent[widgetName].elements.forEach(element => {
           const elementName = path
             .relative(
-              path.join(filesHelper.config.storefrontPath, "widgets"),
+              path.join(files.config.storefront, "widgets"),
               element.path
             )
             .split(path.sep)[3];
@@ -98,15 +98,15 @@ exports.beforeSendResponse = {
       requestDetail.url
     );
   },
-  async resolve({ responseDetail }) {
-    let filesHelper, templateFiles;
+  async resolve({ responseDetail, serverOptions }) {
+    let files, templateFiles;
 
     try {
-      filesHelper = await new Files();
-      templateFiles = await filesHelper.findFiles(
+      files = await new Files(serverOptions);
+      templateFiles = await files.findFiles(
         ["widgets"],
         ["template", "txt"],
-        filesHelper.config.storefrontPath
+        files.config.storefront
       );
     } catch (error) {
       console.log(error);
@@ -122,7 +122,7 @@ exports.beforeSendResponse = {
       bodyResponse = await replaceTemplate(
         bodyResponse,
         templateFiles,
-        filesHelper
+        files
       );
 
       newResponse = { response: { body: JSON.stringify(bodyResponse) } };

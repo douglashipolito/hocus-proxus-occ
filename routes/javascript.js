@@ -6,7 +6,7 @@ exports.beforeSendRequest = {
   async shouldResolve({ requestDetail }) {
     return /\.js|\/js\//.test(requestDetail.url);
   },
-  async resolve({ requestDetail }) {
+  async resolve({ requestDetail, serverOptions }) {
     let files, jsFiles, requestedFileName;
 
     if (!/\.js/.test(requestDetail.url)) {
@@ -14,7 +14,7 @@ exports.beforeSendRequest = {
     }
 
     try {
-      files = await new Files();
+      files = await new Files(serverOptions);
       requestedFileName = files.fileName(requestDetail.url);
       jsFiles = await files.findFiles(
         ["widgets", "app-level"],
