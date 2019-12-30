@@ -3,10 +3,10 @@ const fs = require("fs-extra");
 const Files = require("../helpers/Files");
 
 exports.beforeSendRequest = {
-  async shouldResolve({ requestDetail }) {
+  async shouldResolve({ requestDetail, server }) {
     return /\.js|\/js\//.test(requestDetail.url);
   },
-  async resolve({ requestDetail, serverOptions }) {
+  async resolve({ requestDetail, serverOptions, server }) {
     let files, jsFiles, requestedFileName;
 
     if (!/\.js/.test(requestDetail.url)) {
@@ -22,7 +22,7 @@ exports.beforeSendRequest = {
         files.config.transpiledFolder
       );
     } catch (error) {
-      console.log(error);
+      server.logger.error(error);
       Promise.reject(error);
       throw new Error(error);
     }
@@ -66,11 +66,11 @@ exports.beforeSendRequest = {
         try {
           fileContent = await fs.readFile(filePath);
         } catch (error) {
-          console.log("Error on loading ", filePath);
+          server.logger.error("Error on loading ", filePath);
           Promise.reject(error);
         }
 
-        console.log(`===> replacing "${requestDetail.url}" by "${filePath}"...`);
+        server.logger.info(`replacing "${requestDetail.url}" by "${filePath}"...`);
 
         return {
           response: {

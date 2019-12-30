@@ -7,7 +7,7 @@ const Config = require('../config');
 inquirer.registerPrompt('directory', require('inquirer-select-directory'));
 inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
 
-function askProject() {
+function askProject(server) {
   return new Promise(async (resolve, reject) => {
     try {
       const projectAnswer = await inquirer.prompt([{
@@ -21,7 +21,7 @@ function askProject() {
       const projectConfigExists = await fs.exists(projectConfigPath);
 
       if(!projectConfigExists) {
-        console.log(`The file "occ-tools.project.json" is not available at the provided path "${project}", please create this file and try again`);
+        server.logger.error(`The file "occ-tools.project.json" is not available at the provided path "${project}", please create this file and try again`);
         process.exit(0);
       }
 
@@ -73,7 +73,7 @@ function createConfig(config, server) {
   return new Promise(async (resolve, reject) => {
     try {
       const configData = {};
-      const projectAnswer = await askProject();
+      const projectAnswer = await askProject(server);
       const project = projectAnswer.project;
       const projectConfigPath = projectAnswer.projectConfigPath;
       const projectConfig = projectAnswer.projectConfig;
@@ -164,7 +164,7 @@ exports.preprocessors = {
       let times = 0;
 
       if(!configExists) {
-        console.log('No config found, creating a new one...\n');
+        server.logger.info('No config found, creating a new one...');
         projectConfig = await createConfig(config, server);
       } else {
         let selectedOption = false;
@@ -178,7 +178,7 @@ exports.preprocessors = {
               break;
             }
             case 'config': {
-              console.log('\n\n', projectConfig, '\n\n');
+              server.logger.info(projectConfig);
               break;
             }
             case 'project': {
@@ -197,7 +197,7 @@ exports.preprocessors = {
         }
 
         if(selectedOption === 'run') {
-          console.log('===> running...');
+          server.logger.success('running...');
         }
       }
     } catch(error) {

@@ -53,16 +53,17 @@ function createJsBundleIndexFile(filesList, appLevelIndexTemplate) {
 }
 
 class Transpiler {
-  constructor(serverOptions) {
+  constructor(serverOptions, server) {
     this.config = {};
+    this.server = server;
     this.serverOptions = serverOptions;
     exitHook(async callback => {
-      console.log("Transpiler - Clearing temp files...");
+      this.server.logger.info("Transpiler - Clearing temp files...");
       try {
         await fs.remove(this.config.transpiledFolder);
         await this.lessWatcher.close();
       } catch (error) {
-        console.log(error);
+        this.server.logger.error(error);
       }
 
       setTimeout(callback, 200);
@@ -83,7 +84,7 @@ class Transpiler {
         );
         resolve(this);
       } catch (error) {
-        console.log(error);
+        this.server.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -114,7 +115,7 @@ class Transpiler {
         widgetsLessFiles = await files.findFiles(["widgets"], ["less"]);
         themeLessFiles = await files.findFiles(["less"], ["less"]);
       } catch (error) {
-        console.log(error);
+        this.server.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -143,21 +144,21 @@ class Transpiler {
 
       const generateCSS = ({lessSourceToRender, outputFile, changedFile, type}) => {
         return new Promise(async (resolve, reject) => {
-          console.log(`===> processing less files for the "${type}"`);
+          this.server.logger.info(`processing less files for the "${type}"`);
           if (changedFile) {
-            console.log(`===> processing less file ${changedFile}`);
+            this.server.logger.info(`processing less file ${changedFile}`);
           }
           try {
             const rendered = await less.render(lessSourceToRender);
             let code = rendered.css;
             code = code.replace(/\/\*__proxy_delete__\*\/[^]+?\/\*__proxy_delete_end__\*\//gm, '');
             await fs.writeFile(outputFile, code);
-            console.log(`===> ${type}'s less processed`);
-            console.log(`===> ${type}'s file saved at: ${outputFile}\n`);
+            this.server.logger.info(`${type}'s less processed`);
+            this.server.logger.info(`${type}'s file saved at: ${outputFile}\n`);
             resolve();
           } catch (error) {
-            console.log("===> error on less process");
-            console.log(error);
+            this.server.logger.error("error on less process");
+            this.server.logger.error(error);
             reject();
           }
         });
@@ -203,7 +204,7 @@ class Transpiler {
           "utf8"
         );
       } catch (error) {
-        console.log(error);
+        this.server.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -339,10 +340,10 @@ class Transpiler {
           if (code === "NON_EXISTENT_EXPORT") throw new Error(message);
 
           if (loc) {
-            console.warn(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
-            if (frame) console.warn(frame);
+            this.server.logger.error(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
+            if (frame) this.server.logger.error(frame);
           } else {
-            console.warn(message);
+            this.server.logger.error(message);
           }
         },
         plugins: [
@@ -387,7 +388,7 @@ class Transpiler {
         sourceMap: "inline"
       };
 
-      console.log("===> Starting Transpilers...");
+      this.server.logger.info("Starting Transpilers...");
       const watcher = rollup.watch({
         ...inputOptions,
         output: [outputOptions]
@@ -395,19 +396,19 @@ class Transpiler {
 
       watcher.on("event", event => {
         if (event.code === "BUNDLE_START") {
-          console.log("===> Bundling...");
+          this.server.logger.info("Bundling...");
         }
 
         if (event.code === "BUNDLE_END") {
-          console.log("===> Bundling ended...");
+          this.server.logger.success("Bundling ended...");
         }
 
         if (event.code === "ERROR") {
-          console.log(event.error);
+          this.server.logger.info(event.error);
         }
 
         if (event.code === "END") {
-          console.log("===> Transpiling process finished");
+          this.server.logger.success("Transpiling process finished");
           resolve();
         }
       });
@@ -419,8 +420,8 @@ exports.preprocessors = {
   async shouldResolve() {
     return true;
   },
-  async resolve({ serverOptions }) {
-    const transpiler =  new Transpiler(serverOptions);
+  async resolve({ serverOptions, server }) {
+    const transpiler =  new Transpiler(serverOptions, server);
 
     try {
       await transpiler.setConfigs();

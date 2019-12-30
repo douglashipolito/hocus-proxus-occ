@@ -98,7 +98,7 @@ exports.beforeSendResponse = {
       requestDetail.url
     );
   },
-  async resolve({ responseDetail, serverOptions }) {
+  async resolve({ responseDetail, serverOptions, server }) {
     let files, templateFiles;
 
     try {
@@ -109,7 +109,7 @@ exports.beforeSendResponse = {
         files.config.storefront
       );
     } catch (error) {
-      console.log(error);
+      server.logger.error(error);
       Promise.reject(error);
       throw new Error(error);
     }
@@ -127,7 +127,7 @@ exports.beforeSendResponse = {
 
       newResponse = { response: { body: JSON.stringify(bodyResponse) } };
     } catch (error) {
-      console.log(error);
+      server.logger.error(error);
     }
 
     return newResponse;
