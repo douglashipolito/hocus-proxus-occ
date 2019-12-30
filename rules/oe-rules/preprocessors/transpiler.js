@@ -22,7 +22,7 @@ function progress(server) {
   logger = logger.scope('hoxus-proxus', 'bundler');
 
   let total = 0;
-  const totalFilePath = path.resolve(os.tmpdir(), "./total.txt");
+  const totalFilePath = path.resolve(os.tmpdir(), "total.txt");
 
   try {
     total = fs.readFileSync(totalFilePath);
