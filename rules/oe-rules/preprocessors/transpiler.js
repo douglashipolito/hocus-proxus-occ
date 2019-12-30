@@ -8,10 +8,56 @@ const less = require("less");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const multiInput = require("rollup-plugin-multi-input").default;
 const html = require("rollup-plugin-html");
-const progress = require("rollup-plugin-progress");
 const amd = require("rollup-plugin-amd");
+const os = require("os");
 const exitHook = require("async-exit-hook");
 const Config = require('../config');
+
+function progress(server) {
+  function normalizePath(id) {
+    return path.relative(process.cwd(), id).split(path.sep).join('/');
+  }
+
+  let logger = server.logger.interactive();
+  logger = logger.scope('hoxus-proxus', 'bundler');
+
+  let total = 0;
+  const totalFilePath = path.resolve(os.tmpdir(), "./total.txt");
+
+  try {
+    total = fs.readFileSync(totalFilePath);
+  } catch (e) {
+    fs.writeFileSync(totalFilePath, 0);
+  }
+  const progress = {
+    total: total,
+    loaded: 0
+  };
+
+  return {
+    name: 'progress',
+    load() {
+      progress.loaded += 1;
+    },
+    transform(code, id) {
+      const file = normalizePath(id);
+      if (file.includes(':')) {
+        return;
+      }
+
+      let output = "";
+      if (progress.total > 0) {
+        let percent = Math.round(100 * progress.loaded / progress.total);
+        output += Math.min(100, percent) + "% ";
+      }
+      output += `(${progress.loaded}): ${file}`;
+      logger.await(output);
+    },
+    generateBundle() {
+      fs.writeFileSync(totalFilePath, progress.loaded);
+    }
+  };
+}
 
 /**
  * Create the index file containing the app level
@@ -56,14 +102,16 @@ class Transpiler {
   constructor(serverOptions, server) {
     this.config = {};
     this.server = server;
+    this.logger = server.logger.scope('hoxus-proxus', 'bundler');
+
     this.serverOptions = serverOptions;
     exitHook(async callback => {
-      this.server.logger.info("Transpiler - Clearing temp files...");
+      this.logger.info("Transpiler - Clearing temp files...");
       try {
         await fs.remove(this.config.transpiledFolder);
         await this.lessWatcher.close();
       } catch (error) {
-        this.server.logger.error(error);
+        this.logger.error(error);
       }
 
       setTimeout(callback, 200);
@@ -84,7 +132,7 @@ class Transpiler {
         );
         resolve(this);
       } catch (error) {
-        this.server.logger.error(error);
+        this.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -115,7 +163,7 @@ class Transpiler {
         widgetsLessFiles = await files.findFiles(["widgets"], ["less"]);
         themeLessFiles = await files.findFiles(["less"], ["less"]);
       } catch (error) {
-        this.server.logger.error(error);
+        this.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -144,21 +192,21 @@ class Transpiler {
 
       const generateCSS = ({lessSourceToRender, outputFile, changedFile, type}) => {
         return new Promise(async (resolve, reject) => {
-          this.server.logger.info(`processing less files for the "${type}"`);
+          this.logger.wait(`processing less files for the "${type}"`);
           if (changedFile) {
-            this.server.logger.info(`processing less file ${changedFile}`);
+            this.logger.wait(`processing less file ${changedFile}`);
           }
           try {
             const rendered = await less.render(lessSourceToRender);
             let code = rendered.css;
             code = code.replace(/\/\*__proxy_delete__\*\/[^]+?\/\*__proxy_delete_end__\*\//gm, '');
             await fs.writeFile(outputFile, code);
-            this.server.logger.info(`${type}'s less processed`);
-            this.server.logger.info(`${type}'s file saved at: ${outputFile}\n`);
+            this.logger.success(`${type}'s less processed`);
+            this.logger.success(`${type}'s file saved at: ${outputFile}\n`);
             resolve();
           } catch (error) {
-            this.server.logger.error("error on less process");
-            this.server.logger.error(error);
+            this.logger.error("error on less process");
+            this.logger.error(error);
             reject();
           }
         });
@@ -171,7 +219,9 @@ class Transpiler {
       }
 
       this.lessWatcher = chokidar.watch(widgetsLessFiles);
+      this.logger.watch('Watching for less changes...');
       this.lessWatcher.on("change", changedFile => {
+        this.logger.watch(`Detect changes on ${changedFile}...`);
         const isThemeFile = !/widgets/.test(changedFile);
         const options = {
           lessSourceToRender: isThemeFile ? themeLessSource() : commonLessSource(),
@@ -204,7 +254,7 @@ class Transpiler {
           "utf8"
         );
       } catch (error) {
-        this.server.logger.error(error);
+        this.logger.error(error);
         reject(error);
         throw new Error(error);
       }
@@ -340,14 +390,14 @@ class Transpiler {
           if (code === "NON_EXISTENT_EXPORT") throw new Error(message);
 
           if (loc) {
-            this.server.logger.error(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
-            if (frame) this.server.logger.error(frame);
+            this.logger.error(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
+            if (frame) this.logger.error(frame);
           } else {
-            this.server.logger.error(message);
+            this.logger.error(message);
           }
         },
         plugins: [
-          progress(),
+          progress(this.server),
           html({
             include: [path.join(this.config.storefront, '**', '*.html')]
           }),
@@ -388,27 +438,28 @@ class Transpiler {
         sourceMap: "inline"
       };
 
-      this.server.logger.info("Starting Transpilers...");
+      this.logger.info("Starting Transpilers...");
       const watcher = rollup.watch({
         ...inputOptions,
         output: [outputOptions]
       });
+      this.logger.watch('Watching for js changes...');
 
       watcher.on("event", event => {
         if (event.code === "BUNDLE_START") {
-          this.server.logger.info("Bundling...");
+          this.logger.info("Bundling...");
         }
 
         if (event.code === "BUNDLE_END") {
-          this.server.logger.success("Bundling ended...");
+          this.logger.success("Bundling ended...");
         }
 
         if (event.code === "ERROR") {
-          this.server.logger.info(event.error);
+          this.logger.info(event.error);
         }
 
         if (event.code === "END") {
-          this.server.logger.success("Transpiling process finished");
+          this.logger.success("Transpiling process finished");
           resolve();
         }
       });
