@@ -202,7 +202,7 @@ class Transpiler {
             code = code.replace(/\/\*__proxy_delete__\*\/[^]+?\/\*__proxy_delete_end__\*\//gm, '');
             await fs.writeFile(outputFile, code);
             this.logger.success(`${type}'s less processed`);
-            this.logger.success(`${type}'s file saved at: ${outputFile}\n`);
+            this.logger.success(`${type}'s file saved at: ${outputFile}`);
             resolve();
           } catch (error) {
             this.logger.error("error on less process");
