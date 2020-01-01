@@ -192,6 +192,13 @@ exports.preprocessors = {
           selectedOption = optionsAnswer.option;
         }
 
+        const currentServerConfigs = await server.listConfigs();
+        if(currentServerConfigs.domain !== projectConfig.environment.hostname) {
+          await server.updateRuleConfig({
+            domain: projectConfig.environment.hostname
+          });
+        }
+
         if(selectedOption === 'exit') {
           process.exit(0);
         }

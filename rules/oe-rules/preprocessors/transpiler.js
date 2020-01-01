@@ -23,7 +23,6 @@ function progress(server) {
 
   let total = 0;
   const totalFilePath = path.resolve(os.tmpdir(), "total.txt");
-
   try {
     total = fs.readFileSync(totalFilePath);
   } catch (e) {
@@ -45,16 +44,30 @@ function progress(server) {
         return;
       }
 
-      let output = "";
-      if (progress.total > 0) {
-        let percent = Math.round(100 * progress.loaded / progress.total);
-        output += Math.min(100, percent) + "% ";
+      if (process.stdout.isTTY) {
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+        let output = "";
+        if (progress.total > 0) {
+          let percent = Math.round(100 * progress.loaded / progress.total);
+          output += Math.min(100, percent) + "% ";
+        }
+        output += `(${progress.loaded}): ${file}`;
+        if (output.length < process.stdout.columns) {
+          logger.await(output);
+        } else {
+          logger.await(output.substring(0, process.stdout.columns - 1));
+        }
+      } else {
+        logger.await(`(${progress.loaded}): ${file}`);
       }
-      output += `(${progress.loaded}): ${file}`;
-      logger.await(output);
     },
     generateBundle() {
       fs.writeFileSync(totalFilePath, progress.loaded);
+      if (process.stdout.isTTY) {
+        process.stdout.clearLine();
+        process.stdout.cursorTo(0);
+      }
     }
   };
 }
