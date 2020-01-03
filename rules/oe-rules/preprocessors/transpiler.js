@@ -54,9 +54,9 @@ function progress(server) {
         }
         output += `(${progress.loaded}): ${file}`;
         if (output.length < process.stdout.columns) {
-          process.stdout(output);
+          process.stdout.write(output);
         } else {
-          process.stdout(output.substring(0, process.stdout.columns - 1));
+          process.stdout.write(output.substring(0, process.stdout.columns - 1));
         }
       } else {
         logger.await(`(${progress.loaded}): ${file}`);
