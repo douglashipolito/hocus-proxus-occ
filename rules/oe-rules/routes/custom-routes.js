@@ -1,6 +1,5 @@
 const fs = require("fs-extra");
 const path = require("path");
-const cheerio = require("cheerio");
 const Config = require("../config");
 let occConfig = null;
 let customRoutes = [];
@@ -58,17 +57,24 @@ exports.beforeSendRequest = {
     }
 
     if (customRoute.filePath && !customRoute.process) {
-      const content = await fs.readFile(
-        customRoute.isAbsolute
-          ? customRoute.filePath
-          : path.join(occConfig.storefront, customRoute.filePath)
-      );
-      return {
-        response: {
-          statusCode: 200,
-          body: content
-        }
-      };
+      try {
+        const content = await fs.readFile(
+          customRoute.isAbsolute
+            ? customRoute.filePath
+            : path.join(occConfig.storefront, customRoute.filePath)
+        );
+
+        return {
+          response: {
+            statusCode: 200,
+            header: requestDetail.requestOptions.headers,
+            body: content
+          }
+        };
+      } catch (error) {
+        server.logger.error("Error on loading ", customRoute.filePath);
+        Promise.reject(error);
+      }
     }
 
     return null;
