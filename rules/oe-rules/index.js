@@ -4,6 +4,7 @@ exports.preprocessors = [
 ];
 
 exports.routes = [
+  require("./routes/custom-routes"),
   require("./routes/main-html"),
   require("./routes/rollup-babel-helper"),
   require("./routes/page"),
