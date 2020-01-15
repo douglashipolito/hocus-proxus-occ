@@ -11,15 +11,18 @@ const html = require("rollup-plugin-html");
 const amd = require("rollup-plugin-amd");
 const os = require("os");
 const exitHook = require("async-exit-hook");
-const Config = require('../config');
+const Config = require("../config");
 
 function progress(server) {
   function normalizePath(id) {
-    return path.relative(process.cwd(), id).split(path.sep).join('/');
+    return path
+      .relative(process.cwd(), id)
+      .split(path.sep)
+      .join("/");
   }
 
   let logger = server.logger.interactive();
-  logger = logger.scope('hoxus-proxus', 'bundler');
+  logger = logger.scope("hoxus-proxus", "bundler");
 
   let total = 0;
   const totalFilePath = path.resolve(os.tmpdir(), "total.txt");
@@ -34,13 +37,13 @@ function progress(server) {
   };
 
   return {
-    name: 'progress',
+    name: "progress",
     load() {
       progress.loaded += 1;
     },
     transform(code, id) {
       const file = normalizePath(id);
-      if (file.includes(':')) {
+      if (file.includes(":")) {
         return;
       }
 
@@ -49,7 +52,7 @@ function progress(server) {
         process.stdout.cursorTo(0);
         let output = "";
         if (progress.total > 0) {
-          let percent = Math.round(100 * progress.loaded / progress.total);
+          let percent = Math.round((100 * progress.loaded) / progress.total);
           output += Math.min(100, percent) + "% ";
         }
         output += `(${progress.loaded}): ${file}`;
@@ -115,7 +118,7 @@ class Transpiler {
   constructor(serverOptions, server) {
     this.config = {};
     this.server = server;
-    this.logger = server.logger.scope('hoxus-proxus', 'bundler');
+    this.logger = server.logger.scope("hoxus-proxus", "bundler");
 
     this.serverOptions = serverOptions;
     exitHook(async callback => {
@@ -155,9 +158,9 @@ class Transpiler {
   less() {
     return new Promise(async (resolve, reject) => {
       let files, widgetsLessFiles, themeLessFiles;
-      const lessPath = path.join(this.config.transpiledFolder, 'less');
-      const commonCSSOutputPath = path.join(lessPath, 'common.css');
-      const themeCSSOutputPath = path.join(lessPath, 'base.css');
+      const lessPath = path.join(this.config.transpiledFolder, "less");
+      const commonCSSOutputPath = path.join(lessPath, "common.css");
+      const themeCSSOutputPath = path.join(lessPath, "base.css");
 
       const bootstrapPath = path.join(
         __dirname,
@@ -181,29 +184,34 @@ class Transpiler {
         throw new Error(error);
       }
 
-      const importWidgetsLessFiles = widgetsLessFiles.map(
-        lessFile => `@import "${lessFile}";`
-      ).join("")
-      const importThemeLessFiles = themeLessFiles.map(
-        lessFile => `@import "${lessFile}";`
-      ).join("");
+      const importWidgetsLessFiles = widgetsLessFiles
+        .map(lessFile => `@import "${lessFile}";`)
+        .join("");
+      const importThemeLessFiles = themeLessFiles
+        .map(lessFile => `@import "${lessFile}";`)
+        .join("");
 
       const commonLessSource = () => {
-        let lessSourceToRender = '';
+        let lessSourceToRender = "";
         lessSourceToRender += `/*__proxy_delete__*/@import "${bootstrapPath}";/*__proxy_delete_end__*/`;
         lessSourceToRender += importWidgetsLessFiles;
         lessSourceToRender += `/*__proxy_delete__*/${importThemeLessFiles}/*__proxy_delete_end__*/`;
         return lessSourceToRender;
-      }
+      };
 
       const themeLessSource = () => {
-        let lessSourceToRender = '';
+        let lessSourceToRender = "";
         lessSourceToRender += `/*__proxy_delete__*/@import "${bootstrapPath}";/*__proxy_delete_end__*/`;
         lessSourceToRender += `${importThemeLessFiles}`;
         return lessSourceToRender;
-      }
+      };
 
-      const generateCSS = ({lessSourceToRender, outputFile, changedFile, type}) => {
+      const generateCSS = ({
+        lessSourceToRender,
+        outputFile,
+        changedFile,
+        type
+      }) => {
         return new Promise(async (resolve, reject) => {
           this.logger.wait(`processing less files for the "${type}"`);
           if (changedFile) {
@@ -212,7 +220,10 @@ class Transpiler {
           try {
             const rendered = await less.render(lessSourceToRender);
             let code = rendered.css;
-            code = code.replace(/\/\*__proxy_delete__\*\/[^]+?\/\*__proxy_delete_end__\*\//gm, '');
+            code = code.replace(
+              /\/\*__proxy_delete__\*\/[^]+?\/\*__proxy_delete_end__\*\//gm,
+              ""
+            );
             await fs.writeFile(outputFile, code);
             this.logger.success(`${type}'s less processed`);
             this.logger.success(`${type}'s file saved at: ${outputFile}`);
@@ -226,22 +237,31 @@ class Transpiler {
       };
 
       try {
-        await generateCSS({ lessSourceToRender: commonLessSource(), outputFile: commonCSSOutputPath, type: 'widgets'});
-        await generateCSS({ lessSourceToRender: themeLessSource(), outputFile: themeCSSOutputPath, type: 'theme'});
-      } catch (error) {
-      }
+        await generateCSS({
+          lessSourceToRender: commonLessSource(),
+          outputFile: commonCSSOutputPath,
+          type: "widgets"
+        });
+        await generateCSS({
+          lessSourceToRender: themeLessSource(),
+          outputFile: themeCSSOutputPath,
+          type: "theme"
+        });
+      } catch (error) {}
 
       this.lessWatcher = chokidar.watch(widgetsLessFiles);
-      this.logger.watch('Watching for less changes...');
+      this.logger.watch("Watching for less changes...");
       this.lessWatcher.on("change", changedFile => {
         this.logger.watch(`Detect changes on ${changedFile}...`);
         const isThemeFile = !/widgets/.test(changedFile);
         const options = {
-          lessSourceToRender: isThemeFile ? themeLessSource() : commonLessSource(),
+          lessSourceToRender: isThemeFile
+            ? themeLessSource()
+            : commonLessSource(),
           outputFile: isThemeFile ? themeCSSOutputPath : commonCSSOutputPath,
-          type: isThemeFile ? 'theme' : 'widgets',
+          type: isThemeFile ? "theme" : "widgets",
           changedFile
-        }
+        };
 
         generateCSS(options);
       });
@@ -252,10 +272,7 @@ class Transpiler {
 
   js() {
     return new Promise(async (resolve, reject) => {
-      let files,
-        widgetsJsFiles,
-        appLevelFiles,
-        appLevelIndexTemplate;
+      let files, widgetsJsFiles, appLevelFiles, appLevelIndexTemplate;
       const widgetJsIndexContent = this.widgetJsIndexContent;
 
       try {
@@ -382,8 +399,11 @@ class Transpiler {
           },
           generateBundle(options, bundle) {
             Object.keys(bundle).forEach(file => {
-              bundle[file].code = bundle[file].code.replace(new RegExp(EXTERNAL_ABSOLUTE_PATH_REPLACER, 'g'), '/')
-            })
+              bundle[file].code = bundle[file].code.replace(
+                new RegExp(EXTERNAL_ABSOLUTE_PATH_REPLACER, "g"),
+                "/"
+              );
+            });
           }
         };
       };
@@ -395,7 +415,7 @@ class Transpiler {
             id
           );
         },
-        onwarn({ code, loc, frame, message }) {
+        onwarn: ({ code, loc, frame, message }) => {
           // skip certain warnings
           if (code === "UNUSED_EXTERNAL_IMPORT") return;
 
@@ -403,7 +423,9 @@ class Transpiler {
           if (code === "NON_EXISTENT_EXPORT") throw new Error(message);
 
           if (loc) {
-            this.logger.error(`${loc.file} (${loc.line}:${loc.column}) ${message}`);
+            this.logger.error(
+              `${loc.file} (${loc.line}:${loc.column}) ${message}`
+            );
             if (frame) this.logger.error(frame);
           } else {
             this.logger.error(message);
@@ -412,7 +434,7 @@ class Transpiler {
         plugins: [
           progress(this.server),
           html({
-            include: [path.join(this.config.storefront, '**', '*.html')]
+            include: [path.join(this.config.storefront, "**", "*.html")]
           }),
           multiInput(),
           occResolverPlugin(),
@@ -456,7 +478,7 @@ class Transpiler {
         ...inputOptions,
         output: [outputOptions]
       });
-      this.logger.watch('Watching for js changes...');
+      this.logger.watch("Watching for js changes...");
 
       watcher.on("event", event => {
         if (event.code === "BUNDLE_START") {
@@ -485,7 +507,7 @@ exports.preprocessors = {
     return true;
   },
   async resolve({ serverOptions, server }) {
-    const transpiler =  new Transpiler(serverOptions, server);
+    const transpiler = new Transpiler(serverOptions, server);
 
     try {
       await transpiler.setConfigs();
