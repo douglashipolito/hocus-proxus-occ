@@ -32,10 +32,7 @@ async function replaceTemplate(bodyResponse, templateFiles, files) {
 
   for await (let foundWidgetPath of foundWidgetsPath) {
     const widgetName = path
-      .relative(
-        path.join(files.config.storefront, "widgets"),
-        foundWidgetPath
-      )
+      .relative(path.join(files.config.storefront, "widgets"), foundWidgetPath)
       .split(path.sep)[1];
 
     if (foundWidgetPath.includes(widgetName)) {
@@ -119,12 +116,9 @@ exports.beforeSendResponse = {
 
     try {
       bodyResponse = JSON.parse(responseDetail.response.body.toString());
-      bodyResponse = await replaceTemplate(
-        bodyResponse,
-        templateFiles,
-        files
-      );
+      bodyResponse = await replaceTemplate(bodyResponse, templateFiles, files);
 
+      bodyResponse.title = `[OCC PROXY] - ${bodyResponse.title}`;
       newResponse = { response: { body: JSON.stringify(bodyResponse) } };
     } catch (error) {
       server.logger.error(error);
