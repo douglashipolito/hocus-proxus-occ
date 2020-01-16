@@ -34,7 +34,7 @@ exports.beforeSendRequest = {
         new RegExp(customRoute.url).test(requestDetail.url)
     );
   },
-  async resolve({ requestDetail }) {
+  async resolve({ requestDetail, server }) {
     const delay = time =>
       new Promise(resolve => {
         setTimeout(resolve, time);
