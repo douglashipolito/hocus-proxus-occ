@@ -4,15 +4,17 @@ const Files = require("../helpers/Files");
 
 exports.beforeSendRequest = {
   async shouldResolve({ requestDetail }) {
-    return /index-|\.\.\/viewModel-/.test(requestDetail.url);
+    return /rollupPluginBabelHelpers-|index-|(\.\.\/viewModel-)|(\/widget\/viewModel-)/.test(requestDetail.url);
   },
   async resolve({ requestDetail, serverOptions, server }) {
     let files, babelJSFile;
 
+    const requestedFileName = requestDetail.url.split('/').pop().replace(/\?.*/, '');
+
     try {
       files = await new Files(serverOptions);
       babelJSFile = await files.findFiles(
-        ["index-*"],
+        ["index-*", "viewModel-*", "_rollupPluginBabelHelpers-*"],
         ["js"],
         files.config.transpiledFolder
       );
@@ -24,7 +26,11 @@ exports.beforeSendRequest = {
 
     if (babelJSFile.length) {
       let fileContent = "";
-      const filePath = babelJSFile[0];
+      const filePath = babelJSFile.find(filePath => filePath.includes(requestedFileName));
+
+      if(!filePath) {
+        return null;
+      }
 
       try {
         fileContent = await fs.readFile(filePath);

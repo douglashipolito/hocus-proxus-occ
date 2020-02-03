@@ -408,6 +408,14 @@ class Transpiler {
         };
       };
 
+      const nodeModulesPath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "node_modules"
+      );
+
       const inputOptions = {
         input: entries,
         external: id => {
@@ -442,24 +450,30 @@ class Transpiler {
           nodeResolve(),
           babel({
             exclude: "node_modules/**",
+            presets: [
+              [
+                path.join(
+                  nodeModulesPath,
+                  "@babel/preset-env"
+                ),
+                {
+                  "targets": {
+                    "chrome": "58",
+                    "ie": "11"
+                  }
+                }
+              ]
+            ],
             plugins: [
               [
                 path.join(
-                  __dirname,
-                  "..",
-                  "..",
-                  "..",
-                  "node_modules",
+                  nodeModulesPath,
                   "@babel/plugin-proposal-decorators"
                 ),
                 { legacy: true }
               ],
               path.join(
-                __dirname,
-                "..",
-                "..",
-                "..",
-                "node_modules",
+                nodeModulesPath,
                 "@babel/plugin-proposal-class-properties"
               )
             ]
