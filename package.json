@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "hocus-proxus-occ": "./index.js"
+    "hocus-proxus-occ": "./index.js",
+    "hpocc": "./index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
