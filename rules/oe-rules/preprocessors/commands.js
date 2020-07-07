@@ -246,6 +246,11 @@ exports.preprocessors = {
         }
 
         const currentServerConfigs = await server.listConfigs();
+
+        // Ensure environment server configs
+        serverOptions.url = projectConfig.environment.url;
+        serverOptions.domain = projectConfig.environment.hostname;
+
         if (
           currentServerConfigs.domain !== projectConfig.environment.hostname
         ) {
