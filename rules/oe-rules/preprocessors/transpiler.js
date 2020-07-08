@@ -13,6 +13,24 @@ const os = require("os");
 const exitHook = require("async-exit-hook");
 const Config = require("../config");
 
+// Force AMD Plugin to return no source map. It will be taken care later
+function amdConverterWithoutSiteMapPlugin(options) {
+  const _amd = amd(options);
+
+  return {
+    name: _amd.name,
+    transform (code, id) {
+      const transformed = _amd.transform(code, id);
+
+      if(!transformed) {
+        return;
+      }
+
+      return { code: transformed, map: null };
+    }
+  }
+}
+
 function progress(server) {
   function normalizePath(id) {
     return path
@@ -446,7 +464,7 @@ class Transpiler {
           }),
           multiInput(),
           occResolverPlugin(),
-          amd(),
+          amdConverterWithoutSiteMapPlugin(),
           nodeResolve(),
           babel({
             exclude: "node_modules/**",
@@ -484,7 +502,7 @@ class Transpiler {
       const outputOptions = {
         format: "amd",
         dir: this.config.transpiledFolder,
-        sourceMap: "inline"
+        sourcemap: "inline"
       };
 
       this.logger.info("Starting Transpilers...");
