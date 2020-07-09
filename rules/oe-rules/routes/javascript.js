@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs-extra");
 const Files = require("../helpers/Files");
+const { isWin } = require('../helpers/system');
 
 exports.beforeSendRequest = {
   async shouldResolve({ requestDetail, server }) {
@@ -39,9 +40,10 @@ exports.beforeSendRequest = {
     );
 
     if (foundJsFiles.length) {
+      const pathSep = isWin() ? '\\\\' : path.sep;
       const filePath = foundJsFiles.find(file => {
         if (/element/.test(file)) {
-          const elementName = file.split(path.sep).reverse()[1];
+          const elementName = file.split(pathSep).reverse()[1];
           return requestDetail.url.includes(elementName);
         }
 
@@ -56,7 +58,7 @@ exports.beforeSendRequest = {
 
       if (filePath) {
         if(requestDetail.url.includes('widget')) {
-          const localWidgetName = filePath.split(path.sep).reverse()[1];
+          const localWidgetName = filePath.split(pathSep).reverse()[1];
 
           if(!requestDetail.url.includes(localWidgetName)) {
             return null;

@@ -164,6 +164,7 @@ class Transpiler {
           path.join(__dirname, "..", "templates", "widget-index.js"),
           "utf8"
         );
+
         resolve(this);
       } catch (error) {
         this.logger.error(error);
@@ -401,7 +402,7 @@ class Transpiler {
           },
           load(id) {
             // Replacing the main js file index
-            if (/widgets/.test(id) && /\/js\/index\.js/.test(id)) {
+            if (/widgets/.test(id) && /(\\|\/)js(\\|\/)index\.js/.test(id)) {
               return widgetJsIndexContent;
             }
 
