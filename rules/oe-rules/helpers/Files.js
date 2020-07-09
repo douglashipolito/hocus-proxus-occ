@@ -2,6 +2,7 @@ const globby = require("globby");
 const path = require("path");
 const cache = [];
 const Config = require('../config');
+const { isWin } = require('./system');
 
 class Files {
   constructor(serverOptions) {
@@ -33,7 +34,7 @@ class Files {
       let foundFiles;
 
       paths = paths.map(currentPath =>
-        path.join(basePath || this.config.storefront, currentPath)
+        path.join(basePath || this.config.storefront, currentPath).replace(/\\/g, '/')
       );
 
       const foundCache = cache.find(
@@ -51,6 +52,11 @@ class Files {
             extensions: filter
           }
         });
+
+        if(isWin()) {
+          foundFiles = foundFiles.map(filePath => filePath.replace(/\//g, '\\\\'));
+        }
+
       } catch (error) {
         reject(error);
         throw new Error(error);
