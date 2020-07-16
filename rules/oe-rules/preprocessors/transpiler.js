@@ -352,6 +352,7 @@ class Transpiler {
         [path.join("app-level", "oeLibs")]: "oeLibs.js"
       });
 
+      const extraAppLevelEntries = {};
       extraAppLevelJSs.forEach(file => {
         const basePath = path
           .relative(this.config.storefront, file)
@@ -361,9 +362,20 @@ class Transpiler {
           .relative(this.config.storefront, file)
           .split(path.sep)[1];
 
+        const entryKey = path.join(basePath, appLevelName);
+
+        if(extraAppLevelEntries[entryKey]) {
+          const appLevelEntryFile = path.basename(extraAppLevelEntries[entryKey], '.js');
+          if(appLevelEntryFile === 'index' || appLevelEntryFile === appLevelName) {
+            return;
+          }
+        }
+
         entries.push({
-          [path.join(basePath, appLevelName)]: file
+          [entryKey]: file
         });
+
+        extraAppLevelEntries[entryKey] = file;
       });
 
       // We will enforce the / in the end of some requests because OCC consider / in the beginning as external, not internal.
