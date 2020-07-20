@@ -47,7 +47,7 @@ function progress(server) {
   try {
     total = fs.readFileSync(totalFilePath);
   } catch (e) {
-    fs.writeFileSync(totalFilePath, 0);
+    fs.writeFileSync(totalFilePath, "0");
   }
   const progress = {
     total: total,
