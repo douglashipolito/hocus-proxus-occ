@@ -17,6 +17,7 @@
     "@babel/core": "^7.5.5",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@buxlabs/amd-to-es6": "^0.15.2",
     "async-exit-hook": "^2.0.1",
     "cheerio": "^1.0.0-rc.3",
     "chokidar": "^3.3.0",
@@ -34,7 +35,8 @@
     "rollup-plugin-babel": "^4.3.3",
     "rollup-plugin-html": "^0.2.1",
     "rollup-plugin-multi-input": "^1.0.2",
-    "rollup-plugin-node-resolve": "^5.2.0"
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-pluginutils": "^2.8.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.8.4"

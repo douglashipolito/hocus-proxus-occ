@@ -8,28 +8,10 @@ const less = require("less");
 const nodeResolve = require("rollup-plugin-node-resolve");
 const multiInput = require("rollup-plugin-multi-input").default;
 const html = require("rollup-plugin-html");
-const amd = require("rollup-plugin-amd");
+const amdConverter = require("../helpers/convert-amd-to-es6");
 const os = require("os");
 const exitHook = require("async-exit-hook");
 const Config = require("../config");
-
-// Force AMD Plugin to return no source map. It will be taken care later
-function amdConverterWithoutSiteMapPlugin(options) {
-  const _amd = amd(options);
-
-  return {
-    name: _amd.name,
-    transform (code, id) {
-      const transformed = _amd.transform(code, id);
-
-      if(!transformed) {
-        return;
-      }
-
-      return { code: transformed, map: null };
-    }
-  }
-}
 
 function progress(server) {
   function normalizePath(id) {
@@ -477,7 +459,7 @@ class Transpiler {
           }),
           multiInput(),
           occResolverPlugin(),
-          amdConverterWithoutSiteMapPlugin(),
+          amdConverter(),
           nodeResolve(),
           babel({
             exclude: "node_modules/**",
