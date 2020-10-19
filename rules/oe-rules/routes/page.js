@@ -70,17 +70,22 @@ async function replaceTemplate(bodyResponse, templateFiles, files) {
             )
             .split(path.sep)[3];
           const elementId = `${widget.typeId}-${elementName}`;
-          widget.elementsSrc = widget.elementsSrc.replace(
-            new RegExp(elementId, "g"),
-            `${elementId}__disabled-by-proxy__`
-          );
-          element.content = `<script type="text/html" id="${elementId}__temporary-placeholder-proxy__">${element.content}</script>`;
+
+          if(widget.elementsSrc) {
+            widget.elementsSrc = widget.elementsSrc.replace(
+              new RegExp(elementId, "g"),
+              `${elementId}__disabled-by-proxy__`
+            );
+            element.content = `<script type="text/html" id="${elementId}__temporary-placeholder-proxy__">${element.content}</script>`;
+          }
         });
 
-        widget.elementsSrc += widgetsTemplatesContent[widgetName].elements
-          .map(element => element.content)
-          .join()
-          .replace(/__temporary-placeholder-proxy__/g, "");
+        if(widget.elementsSrc) {
+          widget.elementsSrc += widgetsTemplatesContent[widgetName].elements
+            .map(element => element.content)
+            .join()
+            .replace(/__temporary-placeholder-proxy__/g, "");
+        }
         return true;
       }
     });
