@@ -15,8 +15,9 @@ exports.beforeSendResponse = {
                                         window.ko = ko;
                                         window.$dataFor = () => ko.dataFor($0);
                                         window.$contextFor = () => ko.contextFor($0);
-                            })</script>
-                          }`)
+                            })
+                          }
+                      </script>`)
     newResponse.body = $.html();
 
     return {
