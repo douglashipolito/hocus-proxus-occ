@@ -416,6 +416,9 @@ class Transpiler {
                 new RegExp(EXTERNAL_ABSOLUTE_PATH_REPLACER, "g"),
                 "/"
               );
+
+              // Workaround to match the local dependency
+              bundle[file].code = bundle[file].code.replace(new RegExp(`'[.]${path.sep}`, 'g'), `'${path.join('local-dependency', path.dirname(file))}${path.sep}`);
             });
           }
         };
