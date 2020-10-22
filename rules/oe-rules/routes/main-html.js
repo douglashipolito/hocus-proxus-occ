@@ -10,11 +10,13 @@ exports.beforeSendResponse = {
     const $ = cheerio.load(body, { decodeEntities: false });
     $("html").addClass("__local_dev_proxy__");
     $('body').append(`<script>
-                          requirejs(["knockout"], ko => {
-                                      window.ko = ko;
-                                      window.$dataFor = () => ko.dataFor($0);
-                                      window.$contextFor = () => ko.contextFor($0);
-                          })</script>`)
+                          if(window.requirejs) {
+                            requirejs(["knockout"], ko => {
+                                        window.ko = ko;
+                                        window.$dataFor = () => ko.dataFor($0);
+                                        window.$contextFor = () => ko.contextFor($0);
+                            })</script>
+                          }`)
     newResponse.body = $.html();
 
     return {
