@@ -32,7 +32,7 @@ class Files {
 
   // Get a glob filter to include only specifc widgets from the user input like 'oeHeaderWidget,msiNotifications' (comma separated widgets)
   getWidgetFileGlobFilter() {
-    if (Array.isArray(this.serverOptions.widgets)) {
+    if (Array.isArray(this.serverOptions.widgets) && this.serverOptions.widgets.length) {
       return ['!**/*', ...this.serverOptions.widgets.map(widget => `**/${widget.trim()}/**/*`)];
     }
     return null;
