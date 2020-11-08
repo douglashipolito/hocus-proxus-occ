@@ -4,6 +4,7 @@ const path = require("path");
 const url = require("url");
 const inquirer = require("inquirer");
 const Config = require("../config");
+const { printSelectWidgetsDisplayName, parseCommaSeparatedValuesIntoArray, parseArrayIntoCommaSeparatedValues } = require("../helpers/user-input");
 inquirer.registerPrompt("directory", require("inquirer-select-directory"));
 inquirer.registerPrompt(
   "autocomplete",
@@ -88,6 +89,24 @@ function askEnvironment(environments) {
   });
 }
 
+function askWidgets(currentlySelectedWidgets) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const widgetsAnswer = await inquirer.prompt([
+        {
+          name: "widgets",
+          message: "Which widgets do you want to proxy (type comma separated widgets):",
+          default: parseArrayIntoCommaSeparatedValues(currentlySelectedWidgets) || null,
+        }
+      ]);
+
+      resolve(widgetsAnswer);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 function createConfig(config, server) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -118,7 +137,7 @@ function createConfig(config, server) {
   });
 }
 
-function optionsToRun(projectConfig, times) {
+function optionsToRun(projectConfig, times, serverOptions) {
   return new Promise(async (resolve, reject) => {
     const options = [
       {
@@ -128,6 +147,10 @@ function optionsToRun(projectConfig, times) {
       {
         value: "environment",
         name: "Select environment"
+      },
+      {
+        value: "widgets",
+        name: printSelectWidgetsDisplayName(serverOptions.widgets)
       },
       {
         value: "config",
@@ -183,6 +206,21 @@ function selectEnvironment(config, server) {
   });
 }
 
+function selectWidgets(serverOptions) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const selectedWidgets = await askWidgets(serverOptions.widgets);
+      const widgetsArray = parseCommaSeparatedValuesIntoArray(selectedWidgets.widgets);
+
+      serverOptions.widgets = widgetsArray;
+     
+      resolve();
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
 function changeBrowser(serverOptions) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -226,6 +264,10 @@ exports.preprocessors = {
               await selectEnvironment(config, server);
               break;
             }
+            case "widgets": {
+              await selectWidgets(serverOptions);
+              break;
+            }
             case "config": {
               server.logger.info(projectConfig);
               break;
@@ -241,7 +283,7 @@ exports.preprocessors = {
           }
 
           projectConfig = await config.getConfig();
-          const optionsAnswer = await optionsToRun(projectConfig, times++);
+          const optionsAnswer = await optionsToRun(projectConfig, times++, serverOptions);
           selectedOption = optionsAnswer.option;
         }
 

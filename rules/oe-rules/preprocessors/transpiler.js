@@ -158,7 +158,7 @@ class Transpiler {
 
   less() {
     return new Promise(async (resolve, reject) => {
-      let files, widgetsLessFiles, themeLessFiles;
+      let files, widgetsLessFiles, widgetFileGlobs, themeLessFiles;
       const lessPath = path.join(this.config.transpiledFolder, "less");
       const commonCSSOutputPath = path.join(lessPath, "common.css");
       const themeCSSOutputPath = path.join(lessPath, "base.css");
@@ -177,7 +177,8 @@ class Transpiler {
       try {
         await fs.ensureDir(lessPath);
         files = await new Files(this.serverOptions);
-        widgetsLessFiles = await files.findFiles(["widgets"], ["less"]);
+        widgetFileGlobs = files.getWidgetFileGlobFilter();
+        widgetsLessFiles = await files.findFiles(["widgets"], ["less"], null, widgetFileGlobs);
         themeLessFiles = await files.findFiles(["less"], ["less"]);
       } catch (error) {
         this.logger.error(error);
@@ -273,12 +274,13 @@ class Transpiler {
 
   js() {
     return new Promise(async (resolve, reject) => {
-      let files, widgetsJsFiles, appLevelFiles, appLevelIndexTemplate;
+      let files, widgetsJsFiles, widgetFileGlobs, appLevelFiles, appLevelIndexTemplate;
       const widgetJsIndexContent = this.widgetJsIndexContent;
 
       try {
         files = await new Files(this.serverOptions);
-        widgetsJsFiles = await files.findFiles(["widgets"], ["js"]);
+        widgetFileGlobs = files.getWidgetFileGlobFilter();
+        widgetsJsFiles = await files.findFiles(["widgets"], ["js"], null, widgetFileGlobs);
         appLevelFiles = await files.findFiles(["app-level"], ["js"]);
         appLevelIndexTemplate = await fs.readFile(
           path.join(__dirname, "..", "templates", "app-level-index.js"),
