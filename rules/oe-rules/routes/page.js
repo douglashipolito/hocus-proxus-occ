@@ -101,14 +101,16 @@ exports.beforeSendResponse = {
     );
   },
   async resolve({ responseDetail, serverOptions, server }) {
-    let files, templateFiles;
+    let files, templateFiles, widgetFileGlobs;
 
     try {
       files = await new Files(serverOptions);
+      widgetFileGlobs = files.getWidgetFileGlobFilter();
       templateFiles = await files.findFiles(
         ["widgets"],
         ["template", "txt"],
-        files.config.storefront
+        files.config.storefront,
+        widgetFileGlobs
       );
     } catch (error) {
       server.logger.error(error);

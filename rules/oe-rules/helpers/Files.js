@@ -10,6 +10,7 @@ class Files {
       try {
         const config = new Config(serverOptions);
         this.config = await config.getConfig();
+        this.serverOptions = serverOptions;
       } catch (error) {
         reject(error);
         throw new Error("Error on loading configs");
@@ -29,10 +30,17 @@ class Files {
     return match;
   }
 
-  findFiles(paths, filter = [], basePath) {
+  // Get a glob filter to include only specifc widgets from the user input like 'oeHeaderWidget,msiNotifications' (comma separated widgets)
+  getWidgetFileGlobFilter() {
+    if (Array.isArray(this.serverOptions.widgets) && this.serverOptions.widgets.length) {
+      return ['!**/*', ...this.serverOptions.widgets.map(widget => `**/${widget.trim()}/**/*`)];
+    }
+    return null;
+  }
+
+  findFiles(paths, filter = [], basePath, fileGlob) {
     return new Promise(async (resolve, reject) => {
       let foundFiles;
-
       paths = paths.map(currentPath =>
         path.join(basePath || this.config.storefront, currentPath).replace(/\\/g, '/')
       );
@@ -46,12 +54,18 @@ class Files {
         return resolve(foundCache);
       }
 
+      const globbyOptions = {
+        expandDirectories: {
+          extensions: filter
+        }
+      };
+
+      if (fileGlob) {
+        globbyOptions.expandDirectories.files = fileGlob;
+      }
+
       try {
-        foundFiles = await globby(paths, {
-          expandDirectories: {
-            extensions: filter
-          }
-        });
+        foundFiles = await globby(paths, globbyOptions);
 
         if(isWin()) {
           foundFiles = foundFiles.map(filePath => filePath.replace(/\//g, '\\\\'));

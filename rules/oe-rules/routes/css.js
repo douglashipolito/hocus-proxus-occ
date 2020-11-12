@@ -26,7 +26,11 @@ exports.beforeSendResponse = {
       if(/base/.test(requestedCssFile)) {
         bodyResponse += fileContent;
       } else {
-        bodyResponse = fileContent;
+        if(serverOptions.widgets && serverOptions.widgets.length) {
+          bodyResponse = `${bodyResponse}\n${fileContent}`;
+        } else {
+          bodyResponse = fileContent;
+        }
       }
 
       return {
